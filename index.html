@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MakeLynk – Stop Scrolling. Start Building.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary-blue: #4069FF;
+    --deep-indigo: #2A41B3;
+    --violet-purple: #6A5BFF;
+    --white: #FFFFFF;
+    --light-gray: #F2F3F5;
+    --medium-gray: #B8B8B8;
+    --primary-text: #121212;
+    --title-text: #1D1E20;
+    --success-green: #4CD964;
+    --error-red: #FF3B30;
+    --dark-bg: #121212;
+    --dark-surface: #1D1E20;
+    --dark-border: #2C2D30;
+    --light-border: #DDE1EA;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark-bg);
+    color: var(--white);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--primary-blue);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1.5px solid rgba(64, 105, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--dark-border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--medium-gray);
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 120px 24px 80px;
+    overflow: hidden;
+  }
+
+  /* MESH BACKGROUND */
+  .mesh-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .mesh-bg::before {
+    content: '';
+    position: absolute;
+    top: -20%; left: -10%;
+    width: 70vw; height: 70vw;
+    background: radial-gradient(ellipse, rgba(64,105,255,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatA 8s ease-in-out infinite alternate;
+  }
+  .mesh-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -20%; right: -10%;
+    width: 60vw; height: 60vw;
+    background: radial-gradient(ellipse, rgba(106,91,255,0.16) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatB 10s ease-in-out infinite alternate;
+  }
+  @keyframes floatA { from { transform: translate(0,0) scale(1); } to { transform: translate(4%,6%) scale(1.08); } }
+  @keyframes floatB { from { transform: translate(0,0) scale(1); } to { transform: translate(-4%,-6%) scale(1.1); } }
+
+  /* GRID LINES */
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(64,105,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(64,105,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+  }
+
+  /* LOGO SECTION */
+  .logo-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+    animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .logo-ring {
+    position: relative;
+    width: 130px; height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-ring::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 38px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    z-index: -1;
+    animation: spinGlow 4s linear infinite;
+    filter: blur(1px);
+  }
+  .logo-ring::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 44px;
+    background: linear-gradient(135deg, rgba(64,105,255,0.3), rgba(106,91,255,0.3));
+    z-index: -2;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes spinGlow {
+    0% { filter: blur(1px) hue-rotate(0deg); }
+    100% { filter: blur(1px) hue-rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+
+  .logo-box {
+    width: 124px; height: 124px;
+    border-radius: 36px;
+    background: var(--dark-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+  }
+  .logo-box img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    border-radius: 36px;
+  }
+  .logo-placeholder {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -2px;
+  }
+
+  /* HERO TEXT */
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 720px;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--primary-blue);
+    background: rgba(64,105,255,0.1);
+    border: 1px solid rgba(64,105,255,0.25);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.9s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .dot-pulse {
+    width: 6px; height: 6px;
+    background: var(--success-green);
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2.5px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.9s 0.18s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .grad-text {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--violet-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(15px, 2vw, 18px);
+    font-weight: 300;
+    color: var(--medium-gray);
+    line-height: 1.7;
+    margin-bottom: 40px;
+    animation: fadeUp 0.9s 0.26s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  /* DOWNLOAD BUTTON */
+  .btn-download {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px 36px;
+    border-radius: 50px;
+    text-decoration: none;
+    border: none;
+    cursor: none;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+    box-shadow: 0 0 0 0 rgba(64,105,255,0.4);
+    animation: fadeUp 0.9s 0.36s cubic-bezier(0.16,1,0.3,1) both;
+    letter-spacing: 0.2px;
+  }
+  .btn-download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--violet-purple), var(--primary-blue));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .btn-download:hover::before { opacity: 1; }
+  .btn-download:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 20px 60px rgba(64,105,255,0.4), 0 0 0 6px rgba(64,105,255,0.1);
+  }
+  .btn-download:active { transform: translateY(0) scale(0.98); }
+  .btn-download .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    width: 0; height: 0;
+    transform: translate(-50%,-50%);
+    animation: rippleOut 0.6s linear;
+  }
+  @keyframes rippleOut {
+    to { width: 300px; height: 300px; opacity: 0; }
+  }
+  .btn-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+  }
+  .btn-label { position: relative; z-index: 1; }
+  .btn-sub {
+    position: relative;
+    z-index: 1;
+    font-size: 10px;
+    opacity: 0.7;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+  .btn-text-wrap { display: flex; flex-direction: column; align-items: flex-start; }
+
+  /* STATS */
+  .stats-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0;
+    margin-top: 56px;
+    border: 1px solid var(--dark-border);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--dark-surface);
+    animation: fadeUp 0.9s 0.44s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .stat {
+    padding: 24px 36px;
+    text-align: center;
+    flex: 1;
+    border-right: 1px solid var(--dark-border);
+    transition: background 0.2s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: rgba(64,105,255,0.06); }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--medium-gray);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* FEATURES STRIP */
+  .features {
+    position: relative;
+    z-index: 1;
+    padding: 100px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--primary-blue);
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 56px;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--dark-border);
+    border: 1px solid var(--dark-border);
+    border-radius: 24px;
+    overflow: hidden;
+  }
+  .feat-card {
+    background: var(--dark-surface);
+    padding: 36px 30px;
+    transition: background 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(64,105,255,0.07), rgba(106,91,255,0.07));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feat-card:hover::after { opacity: 1; }
+  .feat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 18px;
+    background: rgba(64,105,255,0.12);
+    border: 1px solid rgba(64,105,255,0.2);
+  }
+  .feat-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--white);
+    letter-spacing: -0.3px;
+  }
+  .feat-desc {
+    font-size: 13px;
+    color: var(--medium-gray);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  /* CTA SECTION */
+  .cta-section {
+    padding: 80px 24px 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 1px; height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--dark-border));
+  }
+  .cta-tagline {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .cta-sub {
+    font-size: 15px;
+    color: var(--medium-gray);
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--dark-border);
+    padding: 28px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--violet-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .footer-copy {
+    font-size: 12px;
+    color: var(--medium-gray);
+    font-weight: 300;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* FLOATING PARTICLES */
+  .particles { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--primary-blue);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleDrift var(--dur, 8s) var(--delay, 0s) linear infinite;
+  }
+  @keyframes particleDrift {
+    0% { transform: translateY(100vh) translateX(var(--dx, 0px)); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.4; }
+    100% { transform: translateY(-10vh) translateX(var(--dx2, 20px)); opacity: 0; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .features { padding: 60px 20px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; }
+    .stat { border-right: none; border-bottom: 1px solid var(--dark-border); }
+    .stat:last-child { border-bottom: none; }
+    footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">MakeLynk</div>
+  <span class="nav-badge">Beta v1.0 · Android</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="mesh-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- LOGO -->
+  <div class="logo-container">
+    <div class="logo-ring">
+      <div class="logo-box" id="logoBox">
+ <img src="logo.jpeg" alt="MakeLynk Logo">
+</div>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="dot-pulse"></span>
+      Student Innovation Platform
+    </div>
+    <h1>Build what<br><span class="grad-text">matters.</span></h1>
+    <p class="hero-sub">
+      MakeLynk connects students, developers & innovators to collaborate, build real projects, and grow together — not just scroll.
+    </p>
+
+    <!-- DOWNLOAD BUTTON -->
+    <a href="app-release.apk" download id="downloadBtn" class="btn-download">
+      <div class="btn-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/>
+          <path d="M7.002 9.591C7.854 7.37 10.274 6 12 6c1.726 0 4.146 1.37 4.998 3.591"/>
+          <circle cx="9" cy="12" r="1" fill="white" stroke="none"/>
+          <circle cx="15" cy="12" r="1" fill="white" stroke="none"/>
+          <path d="M8 17c1.333-1.333 6.667-1.333 8 0"/>
+        </svg>
+      </div>
+      <div class="btn-text-wrap">
+        <span class="btn-label">Download for Android</span>
+        <span class="btn-sub">FREE · APK · v1.0</span>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:relative;z-index:1">
+        <path d="M12 15V3m0 12l-3-3m3 3l3-3M3 21h18"/>
+      </svg>
+    </a>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Student Verified</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">Free</div>
+        <div class="stat-label">Always</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Ideas to Build</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-label reveal">What's inside</div>
+  <div class="section-title reveal">Everything you need<br>to <span class="grad-text">build & connect.</span></div>
+
+  <div class="features-grid reveal">
+    <div class="feat-card">
+      <div class="feat-icon">🏠</div>
+      <div class="feat-name">Project Feed</div>
+      <div class="feat-desc">Discover student-built apps, websites, and innovations — like YouTube, but for builders.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">👤</div>
+      <div class="feat-name">Smart Profile</div>
+      <div class="feat-desc">Showcase your skills, projects & achievements. Your developer portfolio — built in.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💡</div>
+      <div class="feat-name">Idea Wall</div>
+      <div class="feat-desc">Post your ideas, get real feedback, and find the right collaborators instantly.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">👥</div>
+      <div class="feat-name">Team Builder</div>
+      <div class="feat-desc">Create or join teams based on skills & interests. Perfect for hackathons & startups.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📚</div>
+      <div class="feat-name">Learn by Building</div>
+      <div class="feat-desc">Practical, real-world learning. No fluff — just skills that matter for actual projects.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔐</div>
+      <div class="feat-name">Verified Network</div>
+      <div class="feat-desc">Real students, real professionals. No bots, no spam — just a genuine ecosystem.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <p class="section-label reveal">Ready?</p>
+  <h2 class="cta-tagline reveal">Stop <em style="font-style:italic;color:var(--medium-gray)">scrolling.</em><br><span class="grad-text">Start building.</span></h2>
+  <p class="cta-sub reveal">Join MakeLynk and turn your ideas into real-world projects.</p>
+  <a href="app-release.apk" download="MakeLynk.apk" class="btn-download reveal">
+    <div class="btn-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2"/>
+        <line x1="12" y1="10" x2="12" y2="16"/>
+        <polyline points="9 13 12 16 15 13"/>
+      </svg>
+    </div>
+    <div class="btn-text-wrap">
+      <span class="btn-label">Download APK</span>
+      <span class="btn-sub">Android · Free · No Sign-up needed to install</span>
+    </div>
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">MakeLynk</div>
+  <div class="footer-copy">© 2025 MakeLynk. Built for creators.</div>
+</footer>
+
+<script>
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+  (function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) *.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, button, .feat-card, .stat').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.5'; });
+    el.addEventListener('mouseleave', () => { ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '1'; });
+  });
+
+  // PARTICLES
+  const pc = document.getElementById('particles');
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const x = Math.random() * 100;
+    p.style.cssText = `left:${x}%; --dur:${6 + Math.random()*10}s; --delay:${Math.random()*10}s; --dx:${(Math.random()-0.5)*60}px; --dx2:${(Math.random()-0.5)*80}px; background:${Math.random()>0.5?'#4069FF':'#6A5BFF'};`;
+    pc.appendChild(p);
+  }
+
+  // SCROLL REVEAL
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // RIPPLE
+  document.querySelectorAll('.btn-download').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const r = document.createElement('span');
+      r.className = 'ripple';
+      const rect = this.getBoundingClientRect();
+      r.style.left = (e.clientX - rect.left) + 'px';
+      r.style.top = (e.clientY - rect.top) + 'px';
+      this.appendChild(r);
+      setTimeout(() => r.remove(), 700);
+    });
+  });
+</script>
+</body>
+</html>
